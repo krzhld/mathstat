@@ -1,0 +1,27 @@
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage[square,sort,comma,numbers]{natbib}
+\usepackage{amsmath} % Required for some math elements 
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english, russian]{babel}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[left=30mm]{geometry} % настройки полей документа
+\lstset{language=R, basicstyle=\small, extendedchars=\true, breaklines=true, breakatwhitespace=true} 
+
+\hypersetup{pdfstartview=FitH, linkcolor=black, urlcolor=black, citecolor=black, colorlinks=true}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\arabic{enumi}.}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+\newcommand{\RomanNumeralCaps}[1]
+{\MakeUppercase{\romannumeral #1}}
+
+\addto\captionsrussian{\def\refname{Литература}}
