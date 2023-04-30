@@ -120,7 +120,7 @@
 	\label{tab:mix_normal}
 \end{table}
 \subsection{Эллипсы рассеивания}
-\noindent Для уравнения эллипса выбиралась константа равная $const = 2 \cdot (2 \cdot \sigma)$
+\noindent Для уравнения эллипса выбирались $\sigma_{x} = 1, \sigma_{y} = 1$
 
 \begin{figure}[H]
 	\centering
@@ -144,13 +144,17 @@
 \end{figure}
 \subsection{Оценки коэффициентов линейной регрессии}
 
-\noindent Метрика удаленности: $distance = \sum_{i=0}^{n}(y_{model}[i]-y_{regr}[i])^2$
+\noindent Метрика удаленности: 
+\begin{equation} \label{eq:metric}
+	dist = \sum_{i=0}^{n}(y_{model}[i]-y_{regr}[i])^2
+\end{equation}
+
 \subsubsection{Выборка без возмущений}
 \begin{enumerate}
 	\item{Критерий наименьших квадратов:}
-	$\hat{a}\approx 2.07$, $\hat{b}\approx 1.82$
+	$\hat{a}\approx 1.83$, $\hat{b}\approx 1.99$, $dist = 26.08$
 	\item{Критерий наименьших модулей:}
-	$\hat{a}\approx 2.11$, $\hat{b}\approx 1.75$
+	$\hat{a}\approx 2.01$, $\hat{b}\approx 2.18$, $dist = 27.57$
 \end{enumerate}
 \begin{figure}[H]
 	\centering
@@ -162,9 +166,9 @@
 \subsubsection{Выборка с возмущениями}
 \begin{enumerate}
 	\item{Критерий наименьших квадратов:}
-	$\hat{a}\approx 2.13$, $\hat{b}\approx 0.53$
+	$\hat{a}\approx 2.22$, $\hat{b}\approx 0.44$, $dist = 201.38$
 	\item{Критерий наименьших модулей:}
-	$\hat{a}\approx 1.97$, $\hat{b}\approx 1.93$
+	$\hat{a}\approx 1.99$, $\hat{b}\approx 1.82$, $dist = 245.82$
 \end{enumerate}
 \begin{figure}[H]
 	\centering
@@ -262,9 +266,10 @@ $\hat{\mu} \approx -0.23, \hat{\sigma} \approx 1.03$
 		\hline
 		n = 20   &  $m$  & $\sigma$\\ \hline
 		&  -0.14 < $m$ < 0.96 & 0.90 < $\sigma$ < 1.72 \\ \hline
-		&   &   \\ \hline
 		n = 100   &  $m$  & $\sigma$\\ \hline
-		& -0.31 < $m$ < 0.14 & 1.01 < $\sigma$ < 1.34 \\
+		& -0.31 < $m$ < 0.14 & 1.01 < $\sigma$ < 1.34 \\ \hline
+		& $m$ & $\sigma$\\ \hline
+		twins & [[-0.31, -0.14], [0.14, 0.96]] & [[0.90, 1.01], [1.34, 1.72]] \\
 		\hline
 	\end{tabular}
 	\caption{Доверительные интервалы для параметров нормального распределения}
@@ -285,9 +290,10 @@ $\hat{\mu} \approx -0.23, \hat{\sigma} \approx 1.03$
 		\hline
 		n = 20   &  $m$  & $\sigma$\\ \hline
 		&  -0.03 < $m$ < 0.85 & 0.86 < $\sigma$ < 2.43 \\ \hline
-		&   &   \\ \hline
 		n = 100   &  $m$  & $\sigma$\\ \hline
-		& -0.28 < $m$ < 0.11 & 1.03 < $\sigma$ < 1.30 \\
+		& -0.28 < $m$ < 0.11 & 1.03 < $\sigma$ < 1.30 \\ \hline
+		&  $m$ & $\sigma$\\ \hline
+		twins & [[-0.28, -0.03], [0.11, 0.85]] & [[0.86, 1.03], [1.30, 2.43]] \\
 		\hline
 	\end{tabular}
 	\caption{Доверительные интервалы для параметров произвольного распределения. Асимптотический подход}
