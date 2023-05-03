@@ -3,18 +3,50 @@ import cauchy as c
 import uniform as u
 import laplace as l
 import poisson as p
+import numpy as np
+import math as m
 
 
 def print_table(E, D, name):
-    print(f"{name}:")
-    print("E:")
-    for temp in E:
-        print(f"& %.3f " % temp, end='')
-    print()
-    print("D:")
-    for temp in D:
-        print(f"& %.3f " % temp, end='')
-    print(end='\n\n')
+    print('\hline')
+    k = 0
+    print(name + ' n = 10 & $\overline{x} $ & $med\:x$ & $z_{R}$ & $z_{Q}$ & $z_{tr}$ \\\\')
+    print('\hline\hline')
+    print(f'$E(z)$ & {E[k + 0]:.3f} & {E[k + 1]:.3f} & {E[k + 2]:.3f} & {E[k + 3]:.3f} & {E[k + 4]:.3f} \\\\')
+    print('\hline')
+    print(f'$D(z)$ & {D[k + 0]:.3f} & {D[k + 1]:.3f} & {D[k + 2]:.3f} & {D[k + 3]:.3f} & {D[k + 4]:.3f}  \\\\')
+    print('\hline')
+    print('$E(z) \pm \sqrt{D(z)}$ & ' + f'[{(E[k + 0] - np.sqrt(D[k + 0])):.3f};{(E[k + 0] + np.sqrt(D[k + 0])):.3f}] & [{(E[k + 1] - np.sqrt(D[k + 1])):.3f};{(E[k + 1] + np.sqrt(D[k + 1])):.3f}] & [{(E[k + 2] - np.sqrt(D[k + 2])):.3f};{(E[k + 2] + np.sqrt(D[k + 2])):.3f}] & [{(E[k + 3] - np.sqrt(D[k + 3])):.3f};{(E[k + 3] + np.sqrt(D[k + 3])):.3f}] & [{(E[k + 4] - np.sqrt(D[k + 4])):.3f};{(E[k + 4] + np.sqrt(D[k + 4])):.3f}]   \\\\')
+    print('\hline')
+    print('$\hat{E}(z)$ ' + f' & {m.trunc(E[k + 0])} & {m.trunc(E[k + 1])} & {m.trunc(E[k + 2])} & {m.trunc(E[k + 3])} & {m.trunc(E[k + 4])}  \\\\')
+    print('\hline\hline')
+    k = 5
+    print(name + ' n = 100 & $\overline{x} $ & $med\:x$ & $z_{R}$ & $z_{Q}$ & $z_{tr}$ \\\\')
+    print('\hline\hline')
+    print(f'$E(z)$ & {E[k + 0]:.3f} & {E[k + 1]:.3f} & {E[k + 2]:.3f} & {E[k + 3]:.3f} & {E[k + 4]:.3f} \\\\')
+    print('\hline')
+    print(f'$D(z)$ & {D[k + 0]:.3f} & {D[k + 1]:.3f} & {D[k + 2]:.3f} & {D[k + 3]:.3f} & {D[k + 4]:.3f}  \\\\')
+    print('\hline')
+    print(
+        '$E(z) \pm \sqrt{D(z)}$ & ' + f'[{(E[k + 0] - np.sqrt(D[k + 0])):.3f};{(E[k + 0] + np.sqrt(D[k + 0])):.3f}] & [{(E[k + 1] - np.sqrt(D[k + 1])):.3f};{(E[k + 1] + np.sqrt(D[k + 1])):.3f}] & [{(E[k + 2] - np.sqrt(D[k + 2])):.3f};{(E[k + 2] + np.sqrt(D[k + 2])):.3f}] & [{(E[k + 3] - np.sqrt(D[k + 3])):.3f};{(E[k + 3] + np.sqrt(D[k + 3])):.3f}] & [{(E[k + 4] - np.sqrt(D[k + 4])):.3f};{(E[k + 4] + np.sqrt(D[k + 4])):.3f}]   \\\\')
+    print('\hline')
+    print(
+        '$\hat{E}(z)$ ' + f' & {m.trunc(E[k + 0])} & {m.trunc(E[k + 1])} & {m.trunc(E[k + 2])} & {m.trunc(E[k + 3])} & {m.trunc(E[k + 4])}  \\\\')
+    print('\hline\hline')
+    k = 10
+    print(name + ' n = 1000 & $\overline{x} $ & $med\:x$ & $z_{R}$ & $z_{Q}$ & $z_{tr}$ \\\\')
+    print('\hline\hline')
+    print(f'$E(z)$ & {E[k + 0]:.3f} & {E[k + 1]:.3f} & {E[k + 2]:.3f} & {E[k + 3]:.3f} & {E[k + 4]:.3f} \\\\')
+    print('\hline')
+    print(f'$D(z)$ & {D[k + 0]:.3f} & {D[k + 1]:.3f} & {D[k + 2]:.3f} & {D[k + 3]:.3f} & {D[k + 4]:.3f}  \\\\')
+    print('\hline')
+    print(
+        '$E(z) \pm \sqrt{D(z)}$ & ' + f'[{(E[k + 0] - np.sqrt(D[k + 0])):.3f};{(E[k + 0] + np.sqrt(D[k + 0])):.3f}] & [{(E[k + 1] - np.sqrt(D[k + 1])):.3f};{(E[k + 1] + np.sqrt(D[k + 1])):.3f}] & [{(E[k + 2] - np.sqrt(D[k + 2])):.3f};{(E[k + 2] + np.sqrt(D[k + 2])):.3f}] & [{(E[k + 3] - np.sqrt(D[k + 3])):.3f};{(E[k + 3] + np.sqrt(D[k + 3])):.3f}] & [{(E[k + 4] - np.sqrt(D[k + 4])):.3f};{(E[k + 4] + np.sqrt(D[k + 4])):.3f}]   \\\\')
+    print('\hline')
+    print(
+        '$\hat{E}(z)$ ' + f' & {m.trunc(E[k + 0])} & {m.trunc(E[k + 1])} & {m.trunc(E[k + 2])} & {m.trunc(E[k + 3])} & {m.trunc(E[k + 4])}  \\\\')
+    print('\hline')
+    print('\n\n\n')
 
 
 E, D = g.gauss_char(0, 1)

@@ -4,7 +4,7 @@ from scipy.stats import laplace
 
 
 def laplace_char(alpha, beta):
-    iterations = {10, 100, 1000}
+    iterations = [10, 100, 1000]
     E = []
     D = []
 
@@ -22,11 +22,30 @@ def laplace_char(alpha, beta):
             z_R = np.append(z_R, pc.half_sum_extreme_s_elem(selection))
             z_Q = np.append(z_Q, pc.half_sum_quartiles(selection))
             z_tr = np.append(z_tr, pc.trunc_mean(selection))
-            characteristics = [x_mean, x_med, z_R, z_Q, z_tr]
-        for cur_char in characteristics:
-            cur_char_mean = np.mean(cur_char)
-            E = np.append(E, cur_char_mean)
-            cur_char_squared_mean = np.mean([i ** 2 for i in cur_char])
-            D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
+
+        cur_char_mean = np.mean(x_mean)
+        E = np.append(E, cur_char_mean)
+        cur_char_squared_mean = np.mean([i ** 2 for i in x_mean])
+        D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
+
+        cur_char_mean = np.mean(x_med)
+        E = np.append(E, cur_char_mean)
+        cur_char_squared_mean = np.mean([i ** 2 for i in x_med])
+        D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
+
+        cur_char_mean = np.mean(z_R)
+        E = np.append(E, cur_char_mean)
+        cur_char_squared_mean = np.mean([i ** 2 for i in z_R])
+        D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
+
+        cur_char_mean = np.mean(z_Q)
+        E = np.append(E, cur_char_mean)
+        cur_char_squared_mean = np.mean([i ** 2 for i in z_Q])
+        D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
+
+        cur_char_mean = np.mean(z_tr)
+        E = np.append(E, cur_char_mean)
+        cur_char_squared_mean = np.mean([i ** 2 for i in z_tr])
+        D = np.append(D, cur_char_squared_mean - cur_char_mean ** 2)
 
     return E, D

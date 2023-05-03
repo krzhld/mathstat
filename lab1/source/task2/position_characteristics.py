@@ -8,7 +8,6 @@ def sample_average(selection):
 
 
 def sample_median(selection):
-    # selection.sort()
     size = len(selection)
     return (selection[size // 2 - (size % 2)] + selection[size // 2]) / 2
 
