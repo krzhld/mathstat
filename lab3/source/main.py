@@ -1,223 +1,162 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import path
+import matplotlib.pyplot as plt
 import scipy.optimize as opt
-from scipy.optimize import linprog
+import pandas as pd
+import path
+
+eps = 10e-4
 
 
-def minimization(A, y, eps):
-    [m, n] = A.shape
-
-    c = np.concatenate((np.zeros((n, 1)), np.ones((m, 1))), axis=0)
-    c = np.ravel(c)
-
-    diag = np.diag(np.full(m, -eps))
-
-    M_1 = np.concatenate((-A, diag), axis=1)
-    M_2 = np.concatenate((A, diag), axis=1)
-    M = np.concatenate((M_1, M_2), axis=0)
-
-    v = np.concatenate((-y, y), axis=0)
-
-    l_b = np.concatenate((np.full(n, None), np.full(m, 1)), axis=0)
-    u_b = np.full(n + m, None)
-
-    bounds = [(l_b[i], u_b[i]) for i in range(len(l_b))]
-
-    opt = linprog(c=c, A_ub=M, b_ub=v, bounds=bounds)
-    y = opt.x
-
-    coefs = y[0:n]
-    w = y[n:n+m]
-
-    return [coefs, w]
+def plot_data(data):
+    plt.figure()
+    data.plot(color='green', linewidth=0.5)
+    plt.title('Experiment data')
+    plt.xlabel('n')
+    plt.ylabel('mV')
+    plt.savefig(path.PATH + 'data.png')
 
 
-def parser():
-    data1 = pd.read_csv('data/Channel_1_700nm_2mm.csv', sep=';', encoding='cp1251')
-    data2 = pd.read_csv('data/Channel_2_700nm_2mm.csv', sep=';', encoding='cp1251')
-
-    data1_mv = np.ravel(data1.drop('мА', axis=1).to_numpy())
-    data2_mv = np.ravel(data2.drop('мА', axis=1).to_numpy())
-
-    data1_n = np.arange(1, len(data1_mv) + 1, 1)
-    data2_n = np.arange(1, len(data2_mv) + 1, 1)
-
-    data1_eps = 1e-4
-    data2_eps = 1e-4
-
-    data1_X = np.stack((np.ones(len(data1_mv)), data1_n))
-    data1_X = np.transpose(data1_X)
-    [data1_tau, data1_w] = minimization(data1_X, data1_mv, data1_eps)
-
-    data2_X = np.stack((np.ones(len(data2_mv)), data2_n))
-    data2_X = np.transpose(data2_X)
-    [data2_tau, data2_w] = minimization(data2_X, data2_mv, data2_eps)
-
-    with open('data/Ch1.txt', 'w') as f:
-        print(f'{data1_tau[0]} {data1_tau[1]}', file=f)
-        for temp in data1_w:
-            print(temp, file=f)
-
-    with open('data/Ch2.txt', 'w') as f:
-        print(f'{data2_tau[0]} {data2_tau[1]}', file=f)
-        for temp in data2_w:
-            print(temp, file=f)
+def diagram(data, epsilon, beta):
+    plt.figure()
+    plt.fill_between(data.index, data - epsilon, data + epsilon, color='royalblue', alpha=0.3)
+    plt.plot(data.index, data, color='green', linewidth=0.5)
+    if beta is not None:
+        plt.plot([0, 199], [beta, beta], color="maroon", linestyle="--", linewidth=0.5)
+    plt.title('Diagram')
+    plt.xlabel('n')
+    plt.ylabel('mV')
+    plt.savefig(path.PATH + f'diagram_beta_{beta}.png')
 
 
-data1_fixed_int = []
-data2_fixed_int = []
+def diagram_with_mode(data, mode):
+    data_mode, data_not_mode = [], []
+    index_mode, index_not_mode = [], []
+    for i in range(0, len(data)):
+        in_mode = False
+        for m in mode:
+            if m[0] >= data[i] - eps and m[1] <= data[i] + eps:
+                data_mode.append(data[i])
+                index_mode.append(i)
+                in_mode = True
+                break
+        if in_mode == False:
+            data_not_mode.append(data[i])
+            index_not_mode.append(i)
+    plt.figure()
+    plt.fill_between(index_mode, np.array(data_mode) - eps, np.array(data_mode) + eps, color='rosybrown', alpha=0.3)
+    plt.plot(index_mode, data_mode, color='brown', linewidth=0.5)
+    plt.fill_between(index_not_mode, np.array(data_not_mode) - eps, np.array(data_not_mode) + eps, color='royalblue',
+                     alpha=0.3)
+    plt.plot(index_not_mode, data_not_mode, color='blue', linewidth=0.5)
+    for m in mode:
+        plt.plot([0, 199], [m[0], m[0]], color="maroon", linestyle="--", linewidth=0.5)
+        plt.plot([0, 199], [m[1], m[1]], color="maroon", linestyle="--", linewidth=0.5)
+    plt.title('Diagram with mode')
+    plt.xlabel('n')
+    plt.ylabel('mV')
+    plt.savefig(path.PATH + 'diagram_with_mode.png')
 
 
-def count_Jaccar(R):
-    data1_new = [[data1_fixed_int[i][0] * R, data1_fixed_int[i][1] * R] for i in range(len(data1_fixed_int))]
-    all_data = data1_new + data2_fixed_int
-    min_inc = list(all_data[0])
-    max_inc = list(all_data[0])
-    for interval in all_data:
+def estimators_of_data(data):
+    size = len(data)
+    return data[0] - eps, data[size - 1] + eps
+
+
+def mode_and_max_click(data):
+    y = []
+    for element in data:
+        y.append(element - eps)
+        y.append(element + eps)
+
+    y = list(set(y))
+    y.sort()
+
+    z = []
+
+    for i in range(0, len(y) - 1):
+        z.append([y[i], y[i + 1]])
+
+    max_mu = 0
+    coefs = []
+
+    for i in range(0, len(z)):
+        mu = 0
+        for j in range(0, len(data)):
+            if data[j] - eps <= z[i][0] and data[j] + eps >= z[i][1]:
+                mu += 1
+
+        if mu > max_mu:
+            max_mu = mu
+            coefs = []
+            coefs.append(i)
+
+        if mu == max_mu:
+            coefs.append(i)
+
+    mode = []
+
+    for i in range(0, len(z)):
+        if i in coefs:
+            mode.append(z[i])
+
+    return mode, max_mu
+
+
+def Jakar_coeff(int_data):
+    min_inc = []
+    min_inc.append(int_data[0][0])
+    min_inc.append(int_data[0][1])
+    for interval in int_data:
         min_inc[0] = max(min_inc[0], interval[0])
         min_inc[1] = min(min_inc[1], interval[1])
-        max_inc[0] = min(max_inc[0], interval[0])
-        max_inc[1] = max(max_inc[1], interval[1])
+    max_inc = [int_data[0][0], int_data[-1][1]]
     JK = (min_inc[1] - min_inc[0]) / (max_inc[1] - max_inc[0])
     return JK
 
 
-def load_processed(filename):
-    A = 0
-    B = 0
-    w = []
-    with open(filename) as f:
-        A, B = [float(t) for t in f.readline().split()]
-        for line in f.readlines():
-            w.append(float(line))
-    return A, B, w
+def relative_width_of_the_mode(int_data, mode):
+    wid_mode = 0
+    for m in mode:
+        wid_mode += m[1] - m[0]
+    return wid_mode / (int_data[-1][1] - int_data[0][0])
 
 
-if __name__ == '__main__':
-    data1 = pd.read_csv('data/Channel_1_700nm_2mm.csv', sep=';', encoding='cp1251')
-    data2 = pd.read_csv('data/Channel_2_700nm_2mm.csv', sep=';', encoding='cp1251')
+def find_oskorbin_center_and_w(data):
+    A, b, c = [], [], []
+    n = len(data)
+    for i in range(0, n):
+        A.append([-eps, -1])
+        A.append([-eps, 1])
+    A.append([-1, 0])
 
-    data1 = data1['мВ']
-    data2 = data2['мВ']
+    for i in range(0, n):
+        b.append(-data[i])
+        b.append(data[i])
+    b.append(-1)
 
-    data1.plot(color='steelblue')
-    plt.title('Experiment data: channel 1 700nm 2mm')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.savefig(path.PATH + 'report/resources/input_PR1.png', dpi=1000)
-    plt.close()
-    data2.plot(color='yellowgreen')
-    plt.title('Experiment data: channel 2 700nm 2mm')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.savefig(path.PATH + 'report/resources/input_PR2.png', dpi=1000)
-    plt.close()
-
-    eps = 1e-4
-    plt.fill_between(data1.index + 1, data1 - eps, data1 + eps, color='steelblue')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Interval data: channel 1 700nm 2mm')
-    plt.savefig(path.PATH + 'report/resources/intervals_PR1.png', dpi=1000)
-    plt.close()
-    plt.fill_between(data2.index + 1, data2 - eps, data2 + eps, color='yellowgreen')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Interval data: channel 2 700nm 2mm')
-    plt.savefig(path.PATH + 'report/resources/intervals_PR2.png', dpi=1000)
-    plt.close()
-
-    parser()
-    A1, B1, w1 = load_processed('data/Ch1.txt')
-    A2, B2, w2 = load_processed('data/Ch2.txt')
-
-    for i in data1.index:
-        plt.vlines(i + 1, data1[i] + w1[i] * eps, data1[i] - w1[i] * eps, color='steelblue')
-    plt.plot(np.arange(1, 201), A1 + B1 * (np.arange(1, 201)), label='lsm', color='yellowgreen')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Interval data ch 1')
-    plt.savefig(path.PATH + 'report/resources/lr_PR1.png', dpi=1000)
-    plt.close()
-    for i in data2.index:
-        plt.vlines(i + 1, data2[i] + w2[i] * eps, data2[i] - w2[i] * eps, color='yellowgreen')
-    plt.plot(np.arange(1, 201), A2 + B2 * (np.arange(1, 201)), label='lsm', color='steelblue')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Interval data ch 2')
-    plt.savefig(path.PATH + 'report/resources/lr_PR2.png', dpi=1000)
-    plt.close()
-
-    plt.hist(w1, color='steelblue')
-    plt.title('w1 hist')
-    plt.savefig(path.PATH + 'report/resources/whyst_PR1.png', dpi=1000)
-    plt.close()
-    plt.hist(w2, color='yellowgreen')
-    plt.title('w2 hist')
-    plt.savefig(path.PATH + 'report/resources/whyst_PR2.png', dpi=1000)
-    plt.close()
-
-    data1_fixed = [y - (i + 1) * B1 for i, y in enumerate(data1)]
-    for i in data1.index:
-        plt.vlines(i + 1, data1_fixed[i] + w1[i] * eps, data1_fixed[i] - w1[i] * eps, color='steelblue')
-    plt.plot(np.arange(1, 201), [A1] * 200, label='lsm', color='yellowgreen')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Data without linear drifting ch 1')
-    plt.savefig(path.PATH + 'report/resources/fixed_PR1.png', dpi=1000)
-    plt.close()
-    data2_fixed = [y - (i + 1) * B2 for i, y in enumerate(data2)]
-    for i in data2.index:
-        plt.vlines(i + 1, data2_fixed[i] + w2[i] * eps, data2_fixed[i] - w2[i] * eps, color='yellowgreen')
-    plt.plot(np.arange(1, 201), [A2] * 200, label='lsm', color='steelblue')
-    plt.xlabel('n')
-    plt.ylabel('мВ')
-    plt.title('Data without linear drifting ch 2')
-    plt.savefig(path.PATH + 'report/resources/fixed_PR2.png', dpi=1000)
-    plt.close()
-
-    plt.hist(data1_fixed, color='steelblue')
-    plt.title('l1 hist')
-    plt.savefig(path.PATH + 'report/resources/fhyst_PR1.png', dpi=1000)
-    plt.close()
-    plt.hist(data2_fixed, color='yellowgreen')
-    plt.title('l2 hist')
-    plt.savefig(path.PATH + 'report/resources/fhyst_PR2.png', dpi=1000)
-    plt.close()
+    c = [1, 0]
+    result = opt.linprog(c=c, A_ub=A, b_ub=b).x
+    [w, beta] = result
+    return w, beta
 
 
-    data1_fixed_int = [[y - w1[i] * eps, y + w1[i] * eps] for i, y in enumerate(data1_fixed)]
-    data2_fixed_int = [[y - w2[i] * eps, y + w2[i] * eps] for i, y in enumerate(data2_fixed)]
-
-
-    R_interval = np.linspace(1, 1.1, 1000)
-    Jaccars = []
-    for R in R_interval:
-        Jaccars.append(count_Jaccar(R))
-
-    optimal_x = opt.fmin(lambda x: -count_Jaccar(x), 1.068531955)
-    min1 = opt.root(count_Jaccar, 1.068531955 + eps)
-    max1 = opt.root(count_Jaccar, 1.068531955 - eps)
-
-    plt.plot(R_interval, Jaccars, label="Jaccard", zorder=1)
-    plt.scatter(optimal_x[0], count_Jaccar(optimal_x[0]), label=f"optimal point at R={round(optimal_x[0], 9)}",
-                color="r")
-    plt.scatter(min1.x, count_Jaccar(min1.x), label=f"$min_R$={str(min1.x[0])}", color="b", zorder=2)
-    plt.scatter(max1.x, count_Jaccar(max1.x), label=f"$max_R$={str(max1.x[0])}", color="b", zorder=2)
-    plt.legend()
-    plt.xlabel('$R_{21}$')
-    plt.ylabel('Jaccard')
-    plt.title('Jaccard vs R')
-    plt.savefig(path.PATH + 'report/resources/jakkar.png', dpi=1000)
-    plt.close()
-
-    data1_new = [[data1_fixed_int[i][0] * optimal_x[0], data1_fixed_int[i][1] * optimal_x[0]] for i in
-                 range(len(data1_fixed_int))]
-    all_data = data1_new + data2_fixed_int
-    plt.hist([(inter[0] + inter[1]) / 2 for inter in all_data], label="Combined with optimal R")
-    plt.legend()
-    plt.title('Histogram of combined data with optimal R21')
-    plt.savefig(path.PATH + 'report/resources/jakkar_combined_hist.png', dpi=1000)
-    plt.close()
+if __name__ == "__main__":
+    data = pd.read_csv('data/channel_2_500nm_0.23mm.csv', sep=';', encoding='cp1251')
+    data = data['мВ']
+    interval_data = []
+    for i in range(0, len(data)):
+        interval_data.append([data[i] - eps, data[i] + eps])
+    plot_data(data)
+    print(f'estimators of data = {estimators_of_data(data)}')
+    mode, max_mu = mode_and_max_click(data)
+    print(f'mode = {mode}')
+    print(f'max_mu = {max_mu}')
+    diagram(data, eps, None)
+    diagram_with_mode(data, mode)
+    w, beta = find_oskorbin_center_and_w(data)
+    print(f'[w, beta] = {[w, beta]}')
+    diagram(data, eps * w, beta)
+    Ji = Jakar_coeff(interval_data)
+    print(f'Ji = {Ji}')
+    ro = relative_width_of_the_mode(interval_data, mode)
+    print(f'ro = {ro}')
